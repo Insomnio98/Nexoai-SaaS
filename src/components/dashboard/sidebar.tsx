@@ -3,14 +3,23 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { LogoText } from '@/components/logo';
+import {
+  DashboardIcon,
+  ShoppingCartIcon,
+  ChartIcon,
+  WorkflowIcon,
+  CreditCardIcon,
+  SettingsIcon,
+} from '@/components/icons';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: '📊' },
-  { name: 'Products', href: '/products', icon: '🛒' },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: '📈' },
-  { name: 'Workflows', href: '/dashboard/workflows', icon: '⚡' },
-  { name: 'Billing', href: '/dashboard/billing', icon: '💳' },
-  { name: 'Settings', href: '/dashboard/settings', icon: '⚙️' },
+  { name: 'Dashboard', href: '/dashboard', icon: DashboardIcon },
+  { name: 'Products', href: '/products', icon: ShoppingCartIcon },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: ChartIcon },
+  { name: 'Workflows', href: '/dashboard/workflows', icon: WorkflowIcon },
+  { name: 'Billing', href: '/dashboard/billing', icon: CreditCardIcon },
+  { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon },
 ];
 
 export function Sidebar() {
@@ -20,8 +29,8 @@ export function Sidebar() {
     <div className="glass flex h-screen w-64 flex-col border-r border-white/10">
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-white/10 px-6">
-        <Link href="/dashboard" className="text-2xl font-bold neon-text">
-          Nexoai
+        <Link href="/dashboard">
+          <LogoText className="neon-text" />
         </Link>
       </div>
 
@@ -29,18 +38,19 @@ export function Sidebar() {
       <nav className="flex-1 space-y-1 p-4">
         {navigation.map((item) => {
           const isActive = pathname === item.href;
+          const Icon = item.icon;
           return (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                  : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
               )}
             >
-              <span className="text-lg">{item.icon}</span>
+              <Icon className="h-5 w-5" />
               {item.name}
             </Link>
           );
@@ -50,8 +60,8 @@ export function Sidebar() {
       {/* User section */}
       <div className="border-t border-white/10 p-4">
         <div className="glass flex items-center gap-3 rounded-lg px-3 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
-            U
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-sm font-semibold">
+            DU
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium">Demo User</p>

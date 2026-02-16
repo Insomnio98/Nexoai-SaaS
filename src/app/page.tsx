@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { LogoText } from '@/components/logo';
+import { RocketIcon, CheckIcon } from '@/components/icons';
 
 export default function HomePage() {
   return (
@@ -6,7 +8,7 @@ export default function HomePage() {
       {/* Header */}
       <header className="glass sticky top-0 z-50 border-b border-white/10">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="text-2xl font-bold neon-text">Nexoai</div>
+          <LogoText className="neon-text" />
           <nav className="flex items-center gap-6">
             <Link href="#features" className="text-sm hover:text-primary transition-colors">
               Features
@@ -32,7 +34,7 @@ export default function HomePage() {
         <div className="absolute inset-0 grid-background opacity-20"></div>
         <div className="container relative mx-auto px-4 py-20 text-center">
           <div className="float mb-8 inline-block">
-            <span className="text-7xl">🚀</span>
+            <RocketIcon className="h-20 w-20 text-primary" />
           </div>
           <h1 className="neon-text mb-6 text-6xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
             AI-Powered SaaS
@@ -48,13 +50,13 @@ export default function HomePage() {
           <div className="flex justify-center gap-4">
             <Link
               href="/products"
-              className="btn-futuristic"
+              className="btn-futuristic inline-block"
             >
-              🛒 Browse Products
+              Browse Products
             </Link>
             <Link
               href="/dashboard"
-              className="glass rounded-xl px-8 py-3 text-sm font-medium transition-all hover:bg-white/10 hover:scale-105"
+              className="glass inline-block rounded-xl px-8 py-3 text-sm font-medium transition-all hover:bg-white/10 hover:scale-105"
             >
               View Demo Dashboard
             </Link>
@@ -93,7 +95,11 @@ export default function HomePage() {
           </p>
           <div className="grid gap-8 md:grid-cols-3">
             <div className="product-card text-center">
-              <div className="mb-4 text-5xl">⚡</div>
+              <div className="mb-4 flex justify-center">
+                <svg className="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
               <h3 className="mb-3 text-xl font-semibold">Thin Backend</h3>
               <p className="text-muted-foreground">
                 Next.js API routes orchestrate, n8n executes. Change logic
@@ -101,7 +107,11 @@ export default function HomePage() {
               </p>
             </div>
             <div className="product-card text-center">
-              <div className="mb-4 text-5xl">💰</div>
+              <div className="mb-4 flex justify-center">
+                <svg className="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
               <h3 className="mb-3 text-xl font-semibold">Cost Optimized</h3>
               <p className="text-muted-foreground">
                 Local AI, serverless execution, pay-per-use. Scale without
@@ -109,7 +119,11 @@ export default function HomePage() {
               </p>
             </div>
             <div className="product-card text-center">
-              <div className="mb-4 text-5xl">🔒</div>
+              <div className="mb-4 flex justify-center">
+                <svg className="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
               <h3 className="mb-3 text-xl font-semibold">Security First</h3>
               <p className="text-muted-foreground">
                 Row-level security, webhook verification, tenant isolation by
@@ -124,14 +138,18 @@ export default function HomePage() {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="animated-border rounded-3xl p-12 text-center">
-            <div className="mb-6 text-6xl">🛒</div>
+            <div className="mb-6 flex justify-center">
+              <svg className="h-16 w-16 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
             <h2 className="mb-4 text-4xl font-bold">
               Ready-to-Use AI Products
             </h2>
             <p className="mb-8 text-xl text-muted-foreground">
               Browse our marketplace of premium AI tools and automation workflows
             </p>
-            <Link href="/products" className="btn-futuristic">
+            <Link href="/products" className="btn-futuristic inline-block">
               Explore Marketplace →
             </Link>
           </div>
@@ -146,6 +164,7 @@ export default function HomePage() {
             Choose the plan that works for you
           </p>
           <div className="grid gap-8 md:grid-cols-3">
+            {/* Free Plan */}
             <div className="glass rounded-2xl p-8">
               <h3 className="mb-2 text-xl font-semibold">Free</h3>
               <div className="mt-4">
@@ -154,13 +173,16 @@ export default function HomePage() {
               </div>
               <ul className="mt-6 space-y-3 text-sm">
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> 1,000 credits/month
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  1,000 credits/month
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> Basic AI features
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  Basic AI features
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> Community support
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  Community support
                 </li>
               </ul>
               <Link
@@ -170,6 +192,8 @@ export default function HomePage() {
                 Get Started
               </Link>
             </div>
+
+            {/* Pro Plan */}
             <div className="animated-border rounded-2xl p-8">
               <div className="mb-2 text-xs font-semibold uppercase text-primary">
                 Popular
@@ -181,22 +205,31 @@ export default function HomePage() {
               </div>
               <ul className="mt-6 space-y-3 text-sm">
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> 10,000 credits/month
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  10,000 credits/month
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> Advanced AI features
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  Advanced AI features
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> Priority support
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  Priority support
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> Custom workflows
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  Custom workflows
                 </li>
               </ul>
-              <button className="btn-futuristic mt-6 w-full">
+              <Link
+                href="/auth/signup"
+                className="btn-futuristic mt-6 block text-center"
+              >
                 Start Free Trial
-              </button>
+              </Link>
             </div>
+
+            {/* Enterprise Plan */}
             <div className="glass rounded-2xl p-8">
               <h3 className="mb-2 text-xl font-semibold">Enterprise</h3>
               <div className="mt-4">
@@ -205,19 +238,24 @@ export default function HomePage() {
               </div>
               <ul className="mt-6 space-y-3 text-sm">
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> 50,000 credits/month
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  50,000 credits/month
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> All AI features
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  All AI features
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> Dedicated support
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  Dedicated support
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> Custom integrations
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  Custom integrations
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-primary">✓</span> SLA guarantee
+                  <CheckIcon className="h-4 w-4 text-primary" />
+                  SLA guarantee
                 </li>
               </ul>
               <Link
