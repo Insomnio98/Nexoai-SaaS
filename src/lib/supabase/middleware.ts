@@ -32,6 +32,9 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // IMPORTANT: Do NOT use getSession() here - it reads from JWT without
+  // server validation. getUser() sends a request to Supabase to validate
+  // the token and refresh it if needed.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -45,13 +48,25 @@ export async function updateSession(request: NextRequest) {
   if (isProtectedRoute && !user) {
     const loginUrl = new URL('/auth/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    // Copy any refreshed session cookies to the redirect response
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+    return redirectResponse;
   }
 
   // Redirect authenticated users away from auth pages to dashboard
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
   if (isAuthRoute && user) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    const redirectResponse = NextResponse.redirect(
+      new URL('/dashboard', request.url)
+    );
+    // Copy refreshed session cookies to the redirect response
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+    return redirectResponse;
   }
 
   return supabaseResponse;

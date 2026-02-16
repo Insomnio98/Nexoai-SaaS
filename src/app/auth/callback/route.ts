@@ -1,14 +1,27 @@
 import { createServerClient } from '@supabase/ssr';
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') ?? '/dashboard';
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const code = searchParams.get('code');
+  const next = searchParams.get('next') ?? '/dashboard';
+
+  // Determine correct origin on Vercel (load balancer rewrites origin)
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const isLocal = process.env.NODE_ENV === 'development';
+  let origin: string;
+  if (isLocal) {
+    origin = `http://${request.headers.get('host')}`;
+  } else if (forwardedHost) {
+    origin = `https://${forwardedHost}`;
+  } else {
+    origin = new URL(request.url).origin;
+  }
 
   if (code) {
-    const cookieStore = await cookies();
+    // Create redirect response FIRST so we can set cookies directly on it
+    const redirectTo = new URL(next, origin);
+    const response = NextResponse.redirect(redirectTo);
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,16 +29,12 @@ export async function GET(request: Request) {
       {
         cookies: {
           getAll() {
-            return cookieStore.getAll();
+            return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
-            } catch {
-              // Will be handled by middleware on next request
-            }
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options);
+            });
           },
         },
       }
@@ -38,8 +47,8 @@ export async function GET(request: Request) {
         data: { user },
       } = await supabase.auth.getUser();
 
+      // Create profile for first-time OAuth users
       if (user) {
-        // Check if user profile exists, create one for OAuth signups
         const { data: existingUser } = await supabase
           .from('users')
           .select('id')
@@ -84,12 +93,12 @@ export async function GET(request: Request) {
         }
       }
 
-      const redirectUrl = new URL(next, requestUrl.origin);
-      return NextResponse.redirect(redirectUrl);
+      // Return the response that already has cookies set on it
+      return response;
     }
   }
 
   return NextResponse.redirect(
-    new URL('/auth/login?error=Could not authenticate', requestUrl.origin)
+    new URL('/auth/login?error=Could not authenticate', origin)
   );
 }

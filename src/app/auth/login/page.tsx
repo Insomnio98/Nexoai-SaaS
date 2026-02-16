@@ -35,8 +35,8 @@ function LoginForm() {
       }
 
       if (data.user) {
-        router.push(redirectTo);
-        router.refresh();
+        // Hard navigation ensures middleware runs with fresh cookies
+        window.location.href = redirectTo;
       }
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
