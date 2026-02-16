@@ -1,35 +1,17 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 
 /**
  * Health check endpoint for monitoring
+ * Preview mode - no database required
  */
 export async function GET() {
-  try {
-    // Check database connection
-    const supabase = await createClient();
-    const { error } = await supabase.from('organizations').select('count').limit(1);
-
-    if (error) {
-      throw error;
-    }
-
-    return NextResponse.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      services: {
-        database: 'healthy',
-        api: 'healthy',
-      },
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        status: 'error',
-        timestamp: new Date().toISOString(),
-        error: 'Service degraded',
-      },
-      { status: 503 }
-    );
-  }
+  return NextResponse.json({
+    status: 'ok',
+    mode: 'preview',
+    timestamp: new Date().toISOString(),
+    services: {
+      api: 'healthy',
+      preview: 'enabled',
+    },
+  });
 }
