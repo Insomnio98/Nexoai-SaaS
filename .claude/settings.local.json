@@ -8,7 +8,8 @@
       "Bash(npm install:*)",
       "Bash(node scripts/deploy-schema.js:*)",
       "Bash(npm run build:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(node scripts/create-subscription-plans.js:*)"
     ]
   }
 }
