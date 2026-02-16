@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   // Mock data - in real app, fetch from Supabase
@@ -42,6 +43,33 @@ export default function DashboardPage() {
       name: 'Email Campaign',
       status: 'running',
       time: '15 minutes ago',
+    },
+  ];
+
+  const featuredProducts = [
+    {
+      id: 1,
+      name: 'AI Document Analyzer Pro',
+      description: 'Advanced AI-powered document processing',
+      price: 49.99,
+      icon: '📄',
+      category: 'AI Tools',
+    },
+    {
+      id: 2,
+      name: 'Automation Workflow Pack',
+      description: '50+ pre-built n8n workflows',
+      price: 99.99,
+      icon: '⚡',
+      category: 'Workflows',
+    },
+    {
+      id: 5,
+      name: 'Customer Support Bot',
+      description: 'AI-powered 24/7 customer support',
+      price: 129.99,
+      icon: '🤖',
+      category: 'AI Tools',
     },
   ];
 
@@ -200,6 +228,54 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Featured Products */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Featured Products</CardTitle>
+                <CardDescription>
+                  Boost your automation with premium tools
+                </CardDescription>
+              </div>
+              <Link href="/products">
+                <Button variant="outline" size="sm">
+                  View All
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              {featuredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="group relative overflow-hidden rounded-lg border p-4 transition-all hover:border-primary hover:shadow-lg"
+                >
+                  <div className="mb-3 text-4xl">{product.icon}</div>
+                  <Badge variant="outline" className="mb-2">
+                    {product.category}
+                  </Badge>
+                  <h3 className="mb-2 font-semibold">{product.name}</h3>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    {product.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold text-primary">
+                      ${product.price}
+                    </span>
+                    <Link href="/products">
+                      <Button size="sm" variant="ghost">
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Usage Warning */}
         {usagePercentage > 80 && (

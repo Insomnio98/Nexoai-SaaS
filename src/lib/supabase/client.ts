@@ -11,10 +11,13 @@ export function createClient() {
         autoRefreshToken: true,
         detectSessionInUrl: true,
         flowType: 'pkce',
-        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       },
-      cookies: {
-        domain: typeof window !== 'undefined' ? window.location.hostname : undefined,
+      cookieOptions: {
+        name: 'sb-auth-token',
+        lifetime: 60 * 60 * 24 * 365, // 1 year
+        domain: '',
+        path: '/',
+        sameSite: 'lax',
       },
     }
   );
