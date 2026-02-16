@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
@@ -15,21 +15,16 @@ export async function GET(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
+          getAll() {
+            return cookieStore.getAll();
           },
-          set(name: string, value: string, options: CookieOptions) {
+          setAll(cookiesToSet) {
             try {
-              cookieStore.set({ name, value, ...options });
-            } catch (error) {
-              // Will be handled by middleware
-            }
-          },
-          remove(name: string, options: CookieOptions) {
-            try {
-              cookieStore.set({ name, value: '', ...options });
-            } catch (error) {
-              // Will be handled by middleware
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {
+              // Will be handled by middleware on next request
             }
           },
         },
@@ -39,7 +34,9 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (user) {
         // Check if user profile exists, create one for OAuth signups
@@ -54,24 +51,32 @@ export async function GET(request: Request) {
             // @ts-ignore
             const { data: org } = await supabase
               .from('organizations')
-              .insert([{
-                name: `${user.user_metadata.full_name || user.email}'s Organization`,
-                slug: (user.email?.split('@')[0] || 'user') + '-' + Date.now(),
-                plan: 'free',
-              }])
+              .insert([
+                {
+                  name: `${user.user_metadata.full_name || user.email}'s Organization`,
+                  slug:
+                    (user.email?.split('@')[0] || 'user') + '-' + Date.now(),
+                  plan: 'free',
+                },
+              ])
               .select()
               .single();
 
             if (org) {
               // @ts-ignore
-              await supabase.from('users').insert([{
-                id: user.id,
-                organization_id: org.id,
-                email: user.email!,
-                full_name: user.user_metadata.full_name || user.user_metadata.name || null,
-                avatar_url: user.user_metadata.avatar_url || null,
-                role: 'owner',
-              }]);
+              await supabase.from('users').insert([
+                {
+                  id: user.id,
+                  organization_id: org.id,
+                  email: user.email!,
+                  full_name:
+                    user.user_metadata.full_name ||
+                    user.user_metadata.name ||
+                    null,
+                  avatar_url: user.user_metadata.avatar_url || null,
+                  role: 'owner',
+                },
+              ]);
             }
           } catch (err) {
             console.error('Error creating OAuth user profile:', err);
