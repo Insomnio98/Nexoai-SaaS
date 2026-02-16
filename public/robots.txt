@@ -10,4 +10,4 @@ Allow: /legal/terms
 Disallow: /api/
 Disallow: /dashboard/
 
-Sitemap: https://nexoai.vercel.app/sitemap.xml
+Sitemap: https://nexoai-sigma.vercel.app/sitemap.xml
