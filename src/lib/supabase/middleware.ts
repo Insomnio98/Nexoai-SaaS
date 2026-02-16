@@ -1,6 +1,9 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+const protectedRoutes = ['/dashboard'];
+const authRoutes = ['/auth/login', '/auth/signup'];
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -54,7 +57,23 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+
+  // Redirect unauthenticated users away from protected routes
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  if (isProtectedRoute && !user) {
+    const loginUrl = new URL('/auth/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Redirect authenticated users away from auth pages to dashboard
+  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+  if (isAuthRoute && user) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
 
   return response;
 }

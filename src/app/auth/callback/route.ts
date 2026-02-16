@@ -1,7 +1,6 @@
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import type { CookieOptions } from '@supabase/ssr';
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -23,15 +22,14 @@ export async function GET(request: Request) {
             try {
               cookieStore.set({ name, value, ...options });
             } catch (error) {
-              // Handle cookie setting errors
-              console.error('Cookie set error:', error);
+              // Will be handled by middleware
             }
           },
           remove(name: string, options: CookieOptions) {
             try {
               cookieStore.set({ name, value: '', ...options });
             } catch (error) {
-              console.error('Cookie remove error:', error);
+              // Will be handled by middleware
             }
           },
         },
@@ -41,23 +39,20 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // Get the user
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        // Check if user profile exists in our database
+        // Check if user profile exists, create one for OAuth signups
         const { data: existingUser } = await supabase
           .from('users')
-          .select('*')
+          .select('id')
           .eq('id', user.id)
           .single();
 
-        // If no profile exists, create one (OAuth signup)
         if (!existingUser) {
           try {
-            // Create organization for OAuth user
-            // @ts-ignore - Supabase type inference issue
-            const { data: org, error: orgError } = await supabase
+            // @ts-ignore
+            const { data: org } = await supabase
               .from('organizations')
               .insert([{
                 name: `${user.user_metadata.full_name || user.email}'s Organization`,
@@ -67,9 +62,8 @@ export async function GET(request: Request) {
               .select()
               .single();
 
-            if (org && !orgError) {
-              // Create user profile
-              // @ts-ignore - Supabase type inference issue
+            if (org) {
+              // @ts-ignore
               await supabase.from('users').insert([{
                 id: user.id,
                 organization_id: org.id,
@@ -79,20 +73,17 @@ export async function GET(request: Request) {
                 role: 'owner',
               }]);
             }
-          } catch (error) {
-            console.error('Error creating user profile:', error);
-            // Continue anyway - user is authenticated
+          } catch (err) {
+            console.error('Error creating OAuth user profile:', err);
           }
         }
       }
 
-      // Redirect with proper headers
       const redirectUrl = new URL(next, requestUrl.origin);
       return NextResponse.redirect(redirectUrl);
     }
   }
 
-  // If error, redirect to login with error message
   return NextResponse.redirect(
     new URL('/auth/login?error=Could not authenticate', requestUrl.origin)
   );
