@@ -7,7 +7,7 @@ export default function HomePage() {
       <header className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="text-2xl font-bold">Nexoai</div>
-          <nav className="flex gap-6">
+          <nav className="flex items-center gap-6">
             <Link href="#features" className="text-sm hover:underline">
               Features
             </Link>
@@ -15,7 +15,10 @@ export default function HomePage() {
               Pricing
             </Link>
             <Link href="/dashboard" className="text-sm hover:underline">
-              Dashboard
+              Demo
+            </Link>
+            <Link href="/auth/login" className="rounded-lg border px-4 py-2 text-sm hover:bg-accent">
+              Sign In
             </Link>
           </nav>
         </div>
@@ -38,15 +41,18 @@ export default function HomePage() {
               href="/dashboard"
               className="rounded-lg bg-primary px-8 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
-              Get Started
+              View Demo Dashboard
             </Link>
             <Link
-              href="#features"
+              href="/auth/signup"
               className="rounded-lg border border-input bg-background px-8 py-3 text-sm font-medium hover:bg-accent"
             >
-              Learn More
+              Sign Up Free
             </Link>
           </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            No credit card required • 1,000 free credits monthly
+          </p>
         </div>
       </section>
 
