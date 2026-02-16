@@ -1,0 +1,13 @@
+# Nexoai Robots.txt
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /auth/login
+Allow: /auth/signup
+Allow: /legal/privacy
+Allow: /legal/terms
+
+Disallow: /api/
+Disallow: /dashboard/
+
+Sitemap: https://nexoai.vercel.app/sitemap.xml

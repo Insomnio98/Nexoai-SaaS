@@ -101,6 +101,8 @@ const products = [
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [cart, setCart] = useState<number[]>([]);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
 
   const categories = ['all', 'AI Tools', 'Workflows', 'Marketing', 'Integration', 'Sales'];
 
@@ -122,6 +124,39 @@ export default function ProductsPage() {
     const product = products.find(p => p.id === id);
     return sum + (product?.price || 0);
   }, 0);
+
+  const handleCheckout = async () => {
+    if (cart.length === 0) return;
+
+    setIsCheckingOut(true);
+    setCheckoutError('');
+
+    try {
+      const response = await fetch('/api/products/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productIds: cart,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Checkout failed');
+      }
+
+      // Redirect to Stripe checkout
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      setCheckoutError(error.message || 'Failed to start checkout');
+      setIsCheckingOut(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -293,8 +328,18 @@ export default function ProductsPage() {
               <span className="text-primary">${totalPrice.toFixed(2)}</span>
             </div>
 
-            <button className="btn-futuristic w-full">
-              Proceed to Checkout 🚀
+            {checkoutError && (
+              <div className="mb-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
+                {checkoutError}
+              </div>
+            )}
+
+            <button
+              onClick={handleCheckout}
+              disabled={isCheckingOut}
+              className="btn-futuristic w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isCheckingOut ? 'Processing...' : 'Proceed to Checkout 🚀'}
             </button>
           </div>
         </div>
