@@ -1,0 +1,265 @@
+{
+  "name": "AI Document Processing",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "document-processing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "bucketName": "documents",
+        "fileName": "={{ $json.filePath }}"
+      },
+      "id": "supabase-storage-1",
+      "name": "Download File from Storage",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "extract-text-1",
+      "name": "Extract Text from PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.1"
+            },
+            {
+              "name": "prompt",
+              "value": "Summarize the following document in 3-5 bullet points:\\n\\n{{ $json.text }}"
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ai-1",
+      "name": "AI Summarization (Ollama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "documents",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "column": "id",
+              "operator": "equals",
+              "value": "={{ $json.documentId }}"
+            }
+          ]
+        },
+        "updateFields": {
+          "fields": [
+            {
+              "column": "summary",
+              "value": "={{ $json.response }}"
+            },
+            {
+              "column": "status",
+              "value": "processed"
+            }
+          ]
+        }
+      },
+      "id": "supabase-2",
+      "name": "Update Document in DB",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "usage_events",
+        "data": {
+          "fields": [
+            {
+              "column": "organization_id",
+              "value": "={{ $json.organizationId }}"
+            },
+            {
+              "column": "event_type",
+              "value": "document_processing"
+            },
+            {
+              "column": "credits_used",
+              "value": 10
+            },
+            {
+              "column": "metadata",
+              "value": "={{ { documentId: $json.documentId } }}"
+            }
+          ]
+        }
+      },
+      "id": "supabase-3",
+      "name": "Track Usage Credits",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1120, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-signature",
+              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "workflowName",
+              "value": "document-processing"
+            },
+            {
+              "name": "documentId",
+              "value": "={{ $json.documentId }}"
+            },
+            {
+              "name": "organizationId",
+              "value": "={{ $json.organizationId }}"
+            },
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "result",
+              "value": "={{ $json }}"
+            }
+          ]
+        }
+      },
+      "id": "http-1",
+      "name": "Callback to App",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"executionId\": $execution.id } }}"
+      },
+      "id": "respond-1",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1560, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download File from Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File from Storage": {
+      "main": [
+        [
+          {
+            "node": "Extract Text from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Text from PDF": {
+      "main": [
+        [
+          {
+            "node": "AI Summarization (Ollama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Summarization (Ollama)": {
+      "main": [
+        [
+          {
+            "node": "Update Document in DB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Track Usage Credits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Document in DB": {
+      "main": [
+        [
+          {
+            "node": "Callback to App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Callback to App": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
