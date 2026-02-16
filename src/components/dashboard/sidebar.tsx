@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: '📊' },
+  { name: 'Products', href: '/products', icon: '🛒' },
   { name: 'Analytics', href: '/dashboard/analytics', icon: '📈' },
   { name: 'Workflows', href: '/dashboard/workflows', icon: '⚡' },
   { name: 'Billing', href: '/dashboard/billing', icon: '💳' },
@@ -16,10 +17,10 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-card">
+    <div className="glass flex h-screen w-64 flex-col border-r border-white/10">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b px-6">
-        <Link href="/dashboard" className="text-2xl font-bold">
+      <div className="flex h-16 items-center border-b border-white/10 px-6">
+        <Link href="/dashboard" className="text-2xl font-bold neon-text">
           Nexoai
         </Link>
       </div>
@@ -47,9 +48,9 @@ export function Sidebar() {
       </nav>
 
       {/* User section */}
-      <div className="border-t p-4">
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+      <div className="border-t border-white/10 p-4">
+        <div className="glass flex items-center gap-3 rounded-lg px-3 py-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
             U
           </div>
           <div className="flex-1">
