@@ -1,5 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import type { CookieOptions } from '@supabase/ssr';
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -7,7 +9,34 @@ export async function GET(request: Request) {
   const next = requestUrl.searchParams.get('next') ?? '/dashboard';
 
   if (code) {
-    const supabase = await createClient();
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            try {
+              cookieStore.set({ name, value, ...options });
+            } catch (error) {
+              // Handle cookie setting errors
+              console.error('Cookie set error:', error);
+            }
+          },
+          remove(name: string, options: CookieOptions) {
+            try {
+              cookieStore.set({ name, value: '', ...options });
+            } catch (error) {
+              console.error('Cookie remove error:', error);
+            }
+          },
+        },
+      }
+    );
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
@@ -25,34 +54,41 @@ export async function GET(request: Request) {
 
         // If no profile exists, create one (OAuth signup)
         if (!existingUser) {
-          // Create organization for OAuth user
-          // @ts-ignore - Supabase type inference issue
-          const { data: org } = await supabase
-            .from('organizations')
-            .insert([{
-              name: `${user.user_metadata.full_name || user.email}'s Organization`,
-              slug: (user.email?.split('@')[0] || 'user') + '-' + Date.now(),
-              plan: 'free',
-            }])
-            .select()
-            .single();
-
-          if (org) {
-            // Create user profile
+          try {
+            // Create organization for OAuth user
             // @ts-ignore - Supabase type inference issue
-            await supabase.from('users').insert([{
-              id: user.id,
-              organization_id: org.id,
-              email: user.email!,
-              full_name: user.user_metadata.full_name || user.user_metadata.name || null,
-              avatar_url: user.user_metadata.avatar_url || null,
-              role: 'owner',
-            }]);
+            const { data: org, error: orgError } = await supabase
+              .from('organizations')
+              .insert([{
+                name: `${user.user_metadata.full_name || user.email}'s Organization`,
+                slug: (user.email?.split('@')[0] || 'user') + '-' + Date.now(),
+                plan: 'free',
+              }])
+              .select()
+              .single();
+
+            if (org && !orgError) {
+              // Create user profile
+              // @ts-ignore - Supabase type inference issue
+              await supabase.from('users').insert([{
+                id: user.id,
+                organization_id: org.id,
+                email: user.email!,
+                full_name: user.user_metadata.full_name || user.user_metadata.name || null,
+                avatar_url: user.user_metadata.avatar_url || null,
+                role: 'owner',
+              }]);
+            }
+          } catch (error) {
+            console.error('Error creating user profile:', error);
+            // Continue anyway - user is authenticated
           }
         }
       }
 
-      return NextResponse.redirect(new URL(next, requestUrl.origin));
+      // Redirect with proper headers
+      const redirectUrl = new URL(next, requestUrl.origin);
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
