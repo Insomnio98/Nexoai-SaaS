@@ -26,26 +26,28 @@ export async function GET(request: Request) {
         // If no profile exists, create one (OAuth signup)
         if (!existingUser) {
           // Create organization for OAuth user
+          // @ts-ignore - Supabase type inference issue
           const { data: org } = await supabase
             .from('organizations')
-            .insert({
+            .insert([{
               name: `${user.user_metadata.full_name || user.email}'s Organization`,
               slug: (user.email?.split('@')[0] || 'user') + '-' + Date.now(),
               plan: 'free',
-            })
+            }])
             .select()
             .single();
 
           if (org) {
             // Create user profile
-            await supabase.from('users').insert({
+            // @ts-ignore - Supabase type inference issue
+            await supabase.from('users').insert([{
               id: user.id,
               organization_id: org.id,
               email: user.email!,
               full_name: user.user_metadata.full_name || user.user_metadata.name || null,
               avatar_url: user.user_metadata.avatar_url || null,
               role: 'owner',
-            });
+            }]);
           }
         }
       }

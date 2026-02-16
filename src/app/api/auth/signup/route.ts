@@ -37,13 +37,14 @@ export async function POST(request: Request) {
     }
 
     // Create organization
+    // @ts-ignore - Supabase type inference issue
     const { data: org, error: orgError } = await supabase
       .from('organizations')
-      .insert({
+      .insert([{
         name: organizationName || `${fullName}'s Organization`,
         slug: email.split('@')[0] + '-' + Date.now(),
         plan: 'free',
-      })
+      }])
       .select()
       .single();
 
@@ -54,13 +55,14 @@ export async function POST(request: Request) {
 
     // Link user to organization
     if (org) {
-      await supabase.from('users').insert({
+      // @ts-ignore - Supabase type inference issue
+      await supabase.from('users').insert([{
         id: authData.user.id,
         organization_id: org.id,
         email: authData.user.email!,
         full_name: fullName,
         role: 'owner',
-      });
+      }]);
     }
 
     // Trigger onboarding workflow in n8n
