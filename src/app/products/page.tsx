@@ -103,6 +103,7 @@ export default function ProductsPage() {
   const [cart, setCart] = useState<number[]>([]);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+  const [justAdded, setJustAdded] = useState<number | null>(null);
 
   const categories = ['all', 'AI Tools', 'Workflows', 'Marketing', 'Integration', 'Sales'];
 
@@ -113,6 +114,8 @@ export default function ProductsPage() {
   const addToCart = (productId: number) => {
     if (!cart.includes(productId)) {
       setCart([...cart, productId]);
+      setJustAdded(productId);
+      setTimeout(() => setJustAdded(null), 2000);
     }
   };
 
@@ -174,10 +177,10 @@ export default function ProductsPage() {
               Sign In
             </Link>
             <div className="relative">
-              <button className="glass rounded-full p-2 hover:bg-white/10">
+              <button className="glass rounded-full p-2 hover:bg-white/10 transition-transform hover:scale-110">
                 🛒
                 {cart.length > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs">
+                  <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold animate-bounce">
                     {cart.length}
                   </span>
                 )}
@@ -281,9 +284,9 @@ export default function ProductsPage() {
 
                   <Button
                     onClick={() => isInCart ? removeFromCart(product.id) : addToCart(product.id)}
-                    className={isInCart ? 'bg-green-600 hover:bg-green-700' : ''}
+                    className={`transition-all ${isInCart ? 'bg-green-600 hover:bg-green-700 scale-105' : ''} ${justAdded === product.id ? 'animate-pulse' : ''}`}
                   >
-                    {isInCart ? '✓ Added' : '🛒 Add to Cart'}
+                    {isInCart ? '✓ In Cart' : '🛒 Add to Cart'}
                   </Button>
                 </div>
               </div>
@@ -294,8 +297,11 @@ export default function ProductsPage() {
 
       {/* Cart Sidebar */}
       {cart.length > 0 && (
-        <div className="fixed bottom-8 right-8 w-96 glass neon-glow rounded-2xl p-6 animate-in slide-in-from-right">
-          <h3 className="mb-4 text-xl font-bold">Shopping Cart</h3>
+        <div className="fixed bottom-8 right-8 w-96 glass neon-glow rounded-2xl p-6 animate-in slide-in-from-right shadow-2xl border-2 border-primary/30">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold">Shopping Cart ({cart.length})</h3>
+            <div className="text-2xl animate-bounce">🛒</div>
+          </div>
 
           <div className="mb-4 space-y-3">
             {cart.map(id => {
