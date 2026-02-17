@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { Header } from '@/components/dashboard/header';
 import {
   Card,
@@ -10,6 +13,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 export default function WorkflowsPage() {
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
   const workflows = [
     {
       id: 1,
@@ -122,7 +131,7 @@ export default function WorkflowsPage() {
         title="Workflows"
         description="Manage and monitor your automation workflows"
         action={
-          <Button>
+          <Button onClick={() => showToast('Creating new workflow...')}>
             <span className="mr-2">+</span>
             New Workflow
           </Button>
@@ -183,10 +192,10 @@ export default function WorkflowsPage() {
                     </div>
                   </div>
                   <div className="mt-4 flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => showToast(`Viewing ${workflow.name}...`)}>
                       View
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => showToast(`Editing ${workflow.name}...`)}>
                       Edit
                     </Button>
                   </div>
@@ -234,14 +243,14 @@ export default function WorkflowsPage() {
                         {execution.credits} credits
                       </p>
                     </div>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={() => showToast(`Viewing details for ${execution.workflow}...`)}>
                       Details
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="mt-4 w-full">
+            <Button variant="outline" className="mt-4 w-full" onClick={() => showToast('Loading more executions...')}>
               Load More
             </Button>
           </CardContent>
@@ -292,13 +301,20 @@ export default function WorkflowsPage() {
                       </p>
                     </div>
                   </div>
-                  <Button size="sm">Deploy</Button>
+                  <Button size="sm" onClick={() => showToast(`Deploying ${template.name}...`)}>Deploy</Button>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom rounded-lg border bg-background px-4 py-3 shadow-lg">
+          <p className="text-sm">{toast}</p>
+        </div>
+      )}
     </div>
   );
 }

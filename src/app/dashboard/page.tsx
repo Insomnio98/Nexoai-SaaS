@@ -194,9 +194,11 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-              <Button variant="outline" className="mt-4 w-full">
-                View All Activity
-              </Button>
+              <Link href="/dashboard/analytics">
+                <Button variant="outline" className="mt-4 w-full">
+                  View All Activity
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -209,22 +211,30 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full justify-start" variant="outline">
-                <span className="mr-2">⚡</span>
-                Create New Workflow
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <span className="mr-2">📄</span>
-                Process Document
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <span className="mr-2">🤖</span>
-                Run AI Task
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <span className="mr-2">📊</span>
-                View Analytics
-              </Button>
+              <Link href="/dashboard/workflows">
+                <Button className="w-full justify-start" variant="outline">
+                  <span className="mr-2">⚡</span>
+                  Create New Workflow
+                </Button>
+              </Link>
+              <Link href="/dashboard/workflows">
+                <Button className="w-full justify-start" variant="outline">
+                  <span className="mr-2">📄</span>
+                  Process Document
+                </Button>
+              </Link>
+              <Link href="/dashboard/workflows">
+                <Button className="w-full justify-start" variant="outline">
+                  <span className="mr-2">🤖</span>
+                  Run AI Task
+                </Button>
+              </Link>
+              <Link href="/dashboard/analytics">
+                <Button className="w-full justify-start" variant="outline">
+                  <span className="mr-2">📊</span>
+                  View Analytics
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
@@ -294,9 +304,11 @@ export default function DashboardPage() {
               <p className="text-sm">
                 Consider upgrading your plan to avoid service interruption.
               </p>
-              <Button className="mt-4" size="sm">
-                Upgrade Plan
-              </Button>
+              <Link href="/dashboard/billing">
+                <Button className="mt-4" size="sm">
+                  Upgrade Plan
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         )}

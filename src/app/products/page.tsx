@@ -221,17 +221,14 @@ export default function ProductsPage() {
       <section className="container mx-auto px-4 py-8">
         <div className="flex flex-wrap gap-3 justify-center">
           {categories.map(category => (
-            <button
+            <Button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`btn-futuristic ${
-                selectedCategory === category
-                  ? 'scale-105'
-                  : 'opacity-60 hover:opacity-100'
-              }`}
+              variant={selectedCategory === category ? 'default' : 'outline'}
+              size="sm"
             >
               {category.charAt(0).toUpperCase() + category.slice(1)}
-            </button>
+            </Button>
           ))}
         </div>
       </section>
@@ -245,7 +242,7 @@ export default function ProductsPage() {
             return (
               <div
                 key={product.id}
-                className="product-card animated-border group"
+                className="product-card group cursor-pointer"
               >
                 {product.popular && (
                   <Badge className="mb-4 bg-gradient-to-r from-blue-600 to-purple-600">
@@ -340,13 +337,13 @@ export default function ProductsPage() {
               </div>
             )}
 
-            <button
+            <Button
               onClick={handleCheckout}
               disabled={isCheckingOut}
-              className="btn-futuristic w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
-              {isCheckingOut ? 'Processing...' : 'Proceed to Checkout 🚀'}
-            </button>
+              {isCheckingOut ? 'Processing...' : 'Proceed to Checkout'}
+            </Button>
           </div>
         </div>
       )}

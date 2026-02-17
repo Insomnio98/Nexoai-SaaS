@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/dashboard';
 
-  // Determine correct origin on Vercel (load balancer rewrites origin)
+  // Determine correct origin on Vercel
   const forwardedHost = request.headers.get('x-forwarded-host');
   const isLocal = process.env.NODE_ENV === 'development';
   let origin: string;
@@ -18,10 +18,22 @@ export async function GET(request: NextRequest) {
     origin = new URL(request.url).origin;
   }
 
+  // Handle OAuth errors from Supabase
+  const errorParam = searchParams.get('error');
+  const error_description = searchParams.get('error_description');
+  if (errorParam || error_description) {
+    const msg = error_description || errorParam || 'OAuth error';
+    console.error('OAuth callback error:', msg);
+    return NextResponse.redirect(
+      new URL(`/auth/login?error=${encodeURIComponent(msg)}`, origin)
+    );
+  }
+
   if (code) {
-    // Create redirect response FIRST so we can set cookies directly on it
-    const redirectTo = new URL(next, origin);
-    const response = NextResponse.redirect(redirectTo);
+    // Use the official Supabase SSR pattern: setAll must update BOTH
+    // request.cookies (so subsequent getAll reads see updates) and
+    // the outgoing response cookies (so the browser gets them).
+    let response = NextResponse.next({ request });
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,9 +44,13 @@ export async function GET(request: NextRequest) {
             return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              response.cookies.set(name, value, options);
-            });
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value)
+            );
+            response = NextResponse.next({ request });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
           },
         },
       }
@@ -43,28 +59,46 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Exchange succeeded — now create the redirect with session cookies
+      const redirectUrl = new URL(next, origin);
+      const redirectResponse = NextResponse.redirect(redirectUrl);
 
-      // Create profile for first-time OAuth users
-      if (user) {
-        const { data: existingUser } = await supabase
-          .from('users')
-          .select('id')
-          .eq('id', user.id)
-          .single();
+      // Copy session cookies from the exchange response to the redirect
+      response.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie);
+      });
 
-        if (!existingUser) {
-          try {
-            // @ts-ignore
-            const { data: org } = await supabase
+      // Create profile for first-time OAuth users using service role (bypasses RLS)
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          const adminClient = createServerClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!,
+            {
+              cookies: {
+                getAll() { return []; },
+                setAll() {},
+              },
+            }
+          );
+
+          const { data: existingUser } = await adminClient
+            .from('users')
+            .select('id')
+            .eq('id', user.id)
+            .single();
+
+          if (!existingUser) {
+            const { data: org } = await adminClient
               .from('organizations')
               .insert([
                 {
                   name: `${user.user_metadata.full_name || user.email}'s Organization`,
-                  slug:
-                    (user.email?.split('@')[0] || 'user') + '-' + Date.now(),
+                  slug: (user.email?.split('@')[0] || 'user') + '-' + Date.now(),
                   plan: 'free',
                 },
               ])
@@ -72,8 +106,7 @@ export async function GET(request: NextRequest) {
               .single();
 
             if (org) {
-              // @ts-ignore
-              await supabase.from('users').insert([
+              await adminClient.from('users').insert([
                 {
                   id: user.id,
                   organization_id: org.id,
@@ -87,18 +120,23 @@ export async function GET(request: NextRequest) {
                 },
               ]);
             }
-          } catch (err) {
-            console.error('Error creating OAuth user profile:', err);
           }
         }
+      } catch (err) {
+        console.error('Error creating OAuth user profile:', err);
       }
 
-      // Return the response that already has cookies set on it
-      return response;
+      return redirectResponse;
     }
+
+    console.error('Code exchange failed:', error.message);
+    return NextResponse.redirect(
+      new URL(`/auth/login?error=${encodeURIComponent(error.message)}`, origin)
+    );
   }
 
+  // No code and no error — shouldn't happen, redirect to login
   return NextResponse.redirect(
-    new URL('/auth/login?error=Could not authenticate', origin)
+    new URL('/auth/login?error=No authentication code received', origin)
   );
 }

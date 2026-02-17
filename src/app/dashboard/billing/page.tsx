@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { Header } from '@/components/dashboard/header';
 import {
   Card,
@@ -12,6 +15,31 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 
 export default function BillingPage() {
+  const [toast, setToast] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleManageStripe = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/billing/portal', { method: 'POST' });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        showToast(data.error || 'Could not open billing portal');
+      }
+    } catch {
+      showToast('Failed to open billing portal');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Mock data - in real app, fetch from Supabase + Stripe
   const currentPlan = {
     name: 'Pro',
@@ -100,9 +128,9 @@ export default function BillingPage() {
         title="Billing & Usage"
         description="Manage your subscription and view usage"
         action={
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleManageStripe} disabled={isLoading}>
             <span className="mr-2">⚙️</span>
-            Manage in Stripe
+            {isLoading ? 'Opening...' : 'Manage in Stripe'}
           </Button>
         }
       />
@@ -153,8 +181,8 @@ export default function BillingPage() {
             </div>
           </CardContent>
           <CardFooter className="gap-2">
-            <Button variant="outline">Cancel Subscription</Button>
-            <Button>Upgrade Plan</Button>
+            <Button variant="outline" onClick={() => showToast('Contact support to cancel your subscription')}>Cancel Subscription</Button>
+            <Button onClick={handleManageStripe}>Upgrade Plan</Button>
           </CardFooter>
         </Card>
 
@@ -195,9 +223,9 @@ export default function BillingPage() {
                       Current Plan
                     </Button>
                   ) : plan.price > currentPlan.price ? (
-                    <Button className="w-full">Upgrade</Button>
+                    <Button className="w-full" onClick={handleManageStripe}>Upgrade</Button>
                   ) : (
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full" onClick={handleManageStripe}>
                       Downgrade
                     </Button>
                   )}
@@ -235,7 +263,7 @@ export default function BillingPage() {
                         {invoice.status}
                       </Badge>
                     </div>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={() => showToast(`Downloading invoice ${invoice.id}...`)}>
                       Download
                     </Button>
                   </div>
@@ -283,6 +311,13 @@ export default function BillingPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom rounded-lg border bg-background px-4 py-3 shadow-lg">
+          <p className="text-sm">{toast}</p>
+        </div>
+      )}
     </div>
   );
 }

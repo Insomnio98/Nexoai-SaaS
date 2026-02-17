@@ -1,6 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { workflows } from '@/lib/n8n/client';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
@@ -11,21 +10,27 @@ export async function POST(request: Request) {
   try {
     const { email, password, fullName, organizationName } = await request.json();
 
-    const supabase = await createClient();
+    // Use service role to create user (auto-confirms email so they can log in immediately)
+    const adminClient = createServiceClient();
 
-    // Create user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
-        data: {
+    const { data: authData, error: authError } =
+      await adminClient.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
           full_name: fullName,
         },
-      },
-    });
+      });
 
     if (authError) {
+      if (authError.message?.includes('already been registered')) {
+        return NextResponse.json(
+          { error: 'An account with this email already exists. Please sign in.' },
+          { status: 409 }
+        );
+      }
+      console.error('Signup auth error:', authError);
       return NextResponse.json({ error: authError.message }, { status: 400 });
     }
 
@@ -36,45 +41,45 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create organization
-    // @ts-ignore - Supabase type inference issue
-    const { data: org, error: orgError } = await supabase
+    // Create organization using service role (bypasses RLS)
+    const { data: org, error: orgError } = await adminClient
       .from('organizations')
-      .insert([{
-        name: organizationName || `${fullName}'s Organization`,
-        slug: email.split('@')[0] + '-' + Date.now(),
-        plan: 'free',
-      }])
+      .insert([
+        {
+          name: organizationName || `${fullName}'s Organization`,
+          slug: email.split('@')[0] + '-' + Date.now(),
+          plan: 'free',
+        },
+      ])
       .select()
       .single();
 
-    if (orgError || !org) {
+    if (orgError) {
       console.error('Failed to create organization:', orgError);
-      // Continue anyway - user can create org later
     }
 
     // Link user to organization
     if (org) {
-      // @ts-ignore - Supabase type inference issue
-      await supabase.from('users').insert([{
-        id: authData.user.id,
-        organization_id: org.id,
-        email: authData.user.email!,
-        full_name: fullName,
-        role: 'owner',
-      }]);
-    }
+      const { error: userInsertError } = await adminClient
+        .from('users')
+        .insert([
+          {
+            id: authData.user.id,
+            organization_id: org.id,
+            email: authData.user.email!,
+            full_name: fullName,
+            role: 'owner',
+          },
+        ]);
 
-    // Trigger onboarding workflow in n8n
-    if (org) {
-      workflows.userCreated(authData.user.id, email);
-      workflows.organizationCreated(org.id, 'free');
+      if (userInsertError) {
+        console.error('Failed to link user to org:', userInsertError);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      user: authData.user,
-      organization: org,
+      user: { id: authData.user.id, email: authData.user.email },
     });
   } catch (error: any) {
     console.error('Signup error:', error);

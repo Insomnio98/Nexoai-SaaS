@@ -20,7 +20,7 @@ export default function HomePage() {
               Pricing
             </Link>
             <Link href="/dashboard" className="text-sm hover:text-primary transition-colors">
-              Demo
+              Dashboard
             </Link>
             <Link href="/auth/login" className="glass rounded-lg px-4 py-2 text-sm hover:bg-white/10 transition-all">
               Sign In
@@ -55,14 +55,14 @@ export default function HomePage() {
               Browse Products
             </Link>
             <Link
-              href="/dashboard"
+              href="/auth/signup"
               className="glass inline-block rounded-xl px-8 py-3 text-sm font-medium transition-all hover:bg-white/10 hover:scale-105"
             >
-              View Demo Dashboard
+              Get Started Free
             </Link>
           </div>
           <p className="mt-6 text-sm text-muted-foreground">
-            No credit card required • Free demo available
+            No credit card required • Free tier available
           </p>
 
           {/* Floating stats */}

@@ -9,7 +9,12 @@
       "Bash(node scripts/deploy-schema.js:*)",
       "Bash(npm run build:*)",
       "Bash(vercel:*)",
-      "Bash(node scripts/create-subscription-plans.js:*)"
+      "Bash(node scripts/create-subscription-plans.js:*)",
+      "Bash(xargs:*)",
+      "Bash(git -C \"c:\\\\Users\\\\alexj\\\\Documents\\\\claude\" log --oneline -10)",
+      "Bash(git -C \"c:\\\\Users\\\\alexj\\\\Documents\\\\claude\" branch -a)",
+      "Bash(node -e:*)",
+      "Bash(npx next build:*)"
     ]
   }
 }

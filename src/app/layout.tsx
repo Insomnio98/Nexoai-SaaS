@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { validateEnv } from '@/lib/env';
+
+// Fail fast if required env vars are missing
+validateEnv();
 
 const inter = Inter({ subsets: ['latin'] });
 

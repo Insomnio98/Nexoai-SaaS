@@ -41,7 +41,7 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // Call signup API endpoint
+      // Step 1: Create account via API (uses service role to auto-confirm email)
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -61,14 +61,21 @@ export default function SignupPage() {
         throw new Error(data.error || 'Failed to create account');
       }
 
-      // Show success message
-      setSuccess(true);
+      // Step 2: Sign in on the client to establish session cookies
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // Redirect to dashboard after a short delay
+      if (signInError) {
+        throw new Error(signInError.message);
+      }
+
+      // Show success message and redirect
+      setSuccess(true);
       setTimeout(() => {
-        router.push('/dashboard');
-        router.refresh();
-      }, 1500);
+        window.location.href = '/dashboard';
+      }, 1000);
 
     } catch (err: any) {
       setError(err.message || 'Failed to create account');

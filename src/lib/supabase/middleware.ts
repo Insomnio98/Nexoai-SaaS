@@ -32,14 +32,19 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  const pathname = request.nextUrl.pathname;
+
+  // Let the callback route handle its own auth — don't interfere with PKCE code exchange
+  if (pathname.startsWith('/auth/callback')) {
+    return supabaseResponse;
+  }
+
   // IMPORTANT: Do NOT use getSession() here - it reads from JWT without
   // server validation. getUser() sends a request to Supabase to validate
   // the token and refresh it if needed.
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const pathname = request.nextUrl.pathname;
 
   // Redirect unauthenticated users away from protected routes
   const isProtectedRoute = protectedRoutes.some((route) =>
